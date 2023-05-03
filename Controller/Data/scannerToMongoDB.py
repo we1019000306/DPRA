@@ -39,7 +39,7 @@ def savedInMongoDB(dateStr):
     global globalAllInfoList
     global globalCollectionName
     client = pymongo.MongoClient(host='localhost', port=27017)
-    db = client.test
+    db = client.yesterday
     if len(globalCollectionName) > 0:
         collectionName = globalCollectionName[0]
         collection = db[dateStr]
@@ -55,7 +55,7 @@ def savedInMongoDB(dateStr):
                         'lastDayDeep',
                         'workingHour',
                         'workingAging',
-                        'drillingTools',
+                        'drillTools',
                         '6:00-10:00',
                         '10:00-14:00',
                         '14:00-18:00',
@@ -95,7 +95,7 @@ def loadDataFromExcel(fileNames: str):
         perDayDeepList = []
         workingHourList = []
         workingAgingList = []
-        drillingToolsList = []
+        drillToolsList = []
         workingStateList_01 = []
         workingStateList_02 = []
         workingStateList_03 = []
@@ -119,7 +119,7 @@ def loadDataFromExcel(fileNames: str):
                     perDayDeepList.clear()
                     workingHourList.clear()
                     workingAgingList.clear()
-                    drillingToolsList.clear()
+                    drillToolsList.clear()
                     workingStateList_01.clear()
                     workingStateList_02.clear()
                     workingStateList_03.clear()
@@ -129,9 +129,43 @@ def loadDataFromExcel(fileNames: str):
                     tipsList.clear()
                     allInfoList.clear()
 
-                    patternName = re.compile(r'[0-9]+月+[0-9]+日')
-                    if patternName.search(fileNames):
-                        dateList.append(patternName.search(fileNames).group())
+                    datePatternName = re.compile(r'[0-9]+月+[0-9]+日')
+                    drillToolsPattern = re.compile(r'Φ[A-Za-z0-9]+.[A-Za-z0-9]+.*PDC|'
+                                                   r'φ[A-Za-z0-9]+.[A-Za-z0-9]+.*PDC|'
+                                                   r'Ф[A-Za-z0-9]+.[A-Za-z0-9]+.*PDC|'
+                                                   r'Φ[A-Za-z0-9]+.*PDC|'
+                                                   r'φ[A-Za-z0-9]+.*PDC|'
+                                                   r'Ф[A-Za-z0-9]+.*PDC|'
+                                                   r'Φ[A-Za-z0-9]+[\u4e00-\u9fa5]{0,}钻头|'
+                                                   r'φ[A-Za-z0-9]+[\u4e00-\u9fa5]{0,}钻头|'
+                                                   r'Ф[A-Za-z0-9]+[\u4e00-\u9fa5]{0,}钻头|'
+                                                   r'Φ[A-Za-z0-9]+.[A-Za-z0-9]+[\u4e00-\u9fa5]{0,}钻头|'
+                                                   r'φ[A-Za-z0-9]+.[A-Za-z0-9]+[\u4e00-\u9fa5]{0,}钻头|'
+                                                   r'Ф[A-Za-z0-9]+.[A-Za-z0-9]+[\u4e00-\u9fa5]{0,}钻头|'
+                                                   r'Φ[A-Za-z0-9]+.*复合片|'
+                                                   r'φ[A-Za-z0-9]+.*复合片|'
+                                                   r'Ф[A-Za-z0-9]+.*复合片|'
+                                                   r'[A-Za-z0-9]+钻头|'
+                                                   r'[A-Za-z0-9]+.[A-Za-z0-9]+.*钻头|'
+                                                   r'Φ[A-Za-z0-9]+.[A-Za-z0-9]+.*钻头|'
+                                                   r'φ[A-Za-z0-9]+.[A-Za-z0-9]+.*钻头|'
+                                                   r'Ф[A-Za-z0-9]+.[A-Za-z0-9]+.*钻头|'
+                                                   r'Φ[A-Za-z0-9]+.*钻头|'
+                                                   r'φ[A-Za-z0-9]+.*钻头|'
+                                                   r'Ф[A-Za-z0-9]+.*钻头|'
+                                                   r'Φ[A-Za-z0-9]+.*牙轮|'
+                                                   r'φ[A-Za-z0-9]+.*牙轮|'
+                                                   r'Ф[A-Za-z0-9]+.*牙轮|'
+                                                   r'Φ[A-Za-z0-9]+.[A-Za-z0-9]+.*牙轮|'
+                                                   r'φ[A-Za-z0-9]+.[A-Za-z0-9]+.*牙轮|'
+                                                   r'Ф[A-Za-z0-9]+.[A-Za-z0-9]+.*牙轮')
+                    # 171.5mm潜孔锤头
+
+                    if datePatternName.search(fileNames):
+                        currentDate = datetime.datetime.strptime(datePatternName.search(fileNames).group(), "%m月%d日")
+                        yesterday = currentDate - datetime.timedelta(days=1)
+                        dateStr = yesterday.strftime("%#m月%#d日")
+                        dateList.append(dateStr)
 
                     companyList.append(str(i[0]))
                     drillInfoStrList = str(i[1]).split()
@@ -176,7 +210,8 @@ def loadDataFromExcel(fileNames: str):
 
                     # print('日进尺：' + str(input_table.iloc[m, 3]) + '(m)')
                     perDayDeepList.append(str(input_table.iloc[m + 3, 3]))
-                    drillingToolsList.append(str(input_table.iloc[m + 3, 6]))
+                    if checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])) != None:
+                        drillToolsList.append(checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])))
                     # print('工况：' + str(input_table.iloc[m, 5]))
                     workingStateList_01.append(''.join(str(input_table.iloc[m + 3, 5]).split()))
                     if '扩孔' in workingStateList_01[0] or '钻进' in workingStateList_01[0]:
@@ -191,33 +226,45 @@ def loadDataFromExcel(fileNames: str):
                         workingStateList_02.append(''.join(str(input_table.iloc[m + 3, 5]).split()))
                         if '扩孔' in workingStateList_02[0] or '钻进' in workingStateList_02[0]:
                             workingHourList.append('4')
+                        if checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])) != None:
+                            drillToolsList.append(checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])))
                     elif m % 6 == 2:
                         # workingStateList.append('14:00-18:00' + ''.join(str(input_table.iloc[m+3, 5]).split()))
                         workingStateList_03.append(''.join(str(input_table.iloc[m + 3, 5]).split()))
                         if '扩孔' in workingStateList_03[0] or '钻进' in workingStateList_03[0]:
                             workingHourList.append('4')
+                            if checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])) != None:
+                                drillToolsList.append(checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])))
                     elif m % 6 == 3:
                         workingStateList_04.append(''.join(str(input_table.iloc[m + 3, 5]).split()))
                         if '扩孔' in workingStateList_04[0] or '钻进' in workingStateList_04[0]:
                             workingHourList.append('4')
+                        if checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])) != None:
+                            drillToolsList.append( checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])))
                         # workingStateList.append('18:00-22:00' + ''.join(str(input_table.iloc[m+3, 5]).split()))
                     elif m % 6 == 4:
                         workingStateList_05.append(''.join(str(input_table.iloc[m + 3, 5]).split()))
                         if '扩孔' in workingStateList_05[0] or '钻进' in workingStateList_05[0]:
                             workingHourList.append('4')
+                        if checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])) != None:
+                            drillToolsList.append(checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])))
                         # workingStateList.append('22:00-2:00' + ''.join(str(input_table.iloc[m+3, 5]).split()))
                     elif m % 6 == 5:
                         workingStateList_06.append(''.join(str(input_table.iloc[m + 3, 5]).split()))
                         if '扩孔' in workingStateList_06[0] or '钻进' in workingStateList_06[0]:
                             workingHourList.append('4')
-                        workHour = len(workingHourList)*4
-                        workingHourList.clear()
-                        workingHourList.append(str(workHour))
-                        if workHour > 0:
-                            workAgingStr = str(round(float(perDayDeepList[0]) / float(workHour), 2))
+                        if  '外协' not in drillNumStr:
+                            workHour = len(workingHourList) * 4
+                            workingHourList.clear()
+                            workingHourList.append(str(workHour))
+                            if workHour > 0:
+                                workAgingStr = str(round(float(perDayDeepList[0]) / float(workHour), 2))
+                            else:
+                                workAgingStr = '0'
+                            workingAgingList.append(workAgingStr)
                         else:
-                            workAgingStr = '0'
-                        workingAgingList.append(workAgingStr)
+                            print('外协钻机不计算！！！')
+
                         # workingStateList.append('2:00-6:00' + ''.join(str(input_table.iloc[m+3, 5]).split()))
                         ndList1 = [dateList.copy(),
                                    companyList.copy(),
@@ -227,7 +274,7 @@ def loadDataFromExcel(fileNames: str):
                                    perDayDeepList.copy(),
                                    workingHourList.copy(),
                                    workingAgingList.copy(),
-                                   drillingToolsList.copy(),
+                                   drillToolsList.copy(),
                                    workingStateList_01.copy(),
                                    workingStateList_02.copy(),
                                    workingStateList_03.copy(),
@@ -239,6 +286,9 @@ def loadDataFromExcel(fileNames: str):
                         ndArray = np.array(ndList1, dtype='object')
 
                         if '外协' not in drillNumStr:
+                            if checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])) != None:
+                                drillToolsList.append(
+                                    checkoutDrillTools(drillToolsPattern, str(input_table.iloc[m + 3, 6])))
                             globalAllInfoList.append(ndArray)
                         else:
                             print('数据不合法哦！！！')
@@ -250,6 +300,30 @@ def loadDataFromExcel(fileNames: str):
     else:
         print('Error!')
 
+def checkoutDrillTools(drillToolsPattern,sourceStr):
+    if drillToolsPattern.search(sourceStr):
+        drillToolsStr = drillToolsPattern.search(sourceStr).group()
+        if drillToolsStr != '':
+            if 'Ф' in drillToolsStr:
+                drillToolsStr = drillToolsStr.replace('Ф', 'φ')
+                if drillToolsStr.index('φ') > 0:
+                    drillToolsStr = drillToolsStr[drillToolsStr.index('φ'):len(drillToolsStr)]
+            elif 'φ' in drillToolsStr:
+                print('φ')
+            elif 'Φ' in drillToolsStr:
+                drillToolsStr = drillToolsStr.replace('Φ', 'φ')
+                if drillToolsStr.index('φ') > 0:
+                    drillToolsStr = drillToolsStr[drillToolsStr.index('φ'):len(drillToolsStr)]
+            elif 'Ф' not in drillToolsStr and 'φ' not in drillToolsStr and 'Φ' not in drillToolsStr:
+                drillToolsStr = 'φ' + drillToolsStr
+            else:
+                print(drillToolsStr)
+
+            return drillToolsStr
+        else:
+            return None
+    else:
+        return None
 def scannerAllFolder(pathName):
     global globalFilesPathList
     if os.path.exists(pathName):
@@ -268,8 +342,8 @@ def scannerAllFolder(pathName):
 
 if __name__ == '__main__':
     #loadDataFromExcel('1')
-    # pathName = 'C:\\Users\\18637\\Desktop\\生产日报\\2023'
-    pathName = 'C:\\Users\\18637\\Desktop\\test'
+    pathName = 'C:\\Users\\18637\\Desktop\\生产日报\\2023'
+    # pathName = 'C:\\Users\\18637\\Desktop\\test'
     scannerAllFolder(pathName)
     if len(globalFilesPathList)>0:
         for f in globalFilesPathList:

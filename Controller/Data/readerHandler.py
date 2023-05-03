@@ -1,18 +1,16 @@
 import sys
 import time
 from datetime import datetime
-import pandas as pd
-import numpy as np
-import re
 import xlwt
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QThread, pyqtSignal, QMutex, Qt, QDate
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QHeaderView, QMessageBox
+from PyQt5.QtCore import QThread, pyqtSignal, QMutex
+from PyQt5.QtWidgets import QMessageBox
 from View.DPRAView import Ui_MainWindow
 import pymongo
 import copy
 import datetime
+
+
 
 
 globalTimeList:list = []
@@ -23,8 +21,8 @@ class window(QtWidgets.QMainWindow,Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.searchButton.clicked.connect(self.searchButtonOnClicked)
-        self.startDateEdit.setDate(datetime.datetime.strptime('2023/04/01',"%Y/%m/%d"))
-        self.endDateEdit.setDate(datetime.datetime.strptime('2023/04/07',"%Y/%m/%d"))
+        self.startDateEdit.setDate(datetime.datetime.strptime('2023/04/14',"%Y/%m/%d"))
+        self.endDateEdit.setDate(datetime.datetime.strptime('2023/04/20',"%Y/%m/%d"))
 
     def searchButtonOnClicked(self):
         print(self.startDateEdit.text().split('/'))
@@ -58,7 +56,7 @@ class window(QtWidgets.QMainWindow,Ui_MainWindow):
                             'drillId',
                             'currentDeep',
                             'lastDayDeep',
-                            'drillingTools',
+                            'drillTools',
                             '6:00-10:00',
                             '10:00-14:00',
                             '14:00-18:00',
@@ -119,6 +117,7 @@ def write_excel(data,drillNum,startDate,endDate):
     # 保存excel文件
     book.save('C:\\Users\\18637\\Desktop\\%s(%s至%s).xlsx'%(drillNum,startDate,endDate))
 
+
 def getEveryDay(begin_date,end_date):
     date_list = []
     begin_date = datetime.datetime.strptime(begin_date, "%Y/%m/%d")
@@ -132,7 +131,7 @@ def getEveryDay(begin_date,end_date):
 def searchProjectInfoWithDateAndDrillNum(startDate,endDate,drillNum):
     getEveryDay(startDate,endDate)
     client = pymongo.MongoClient(host='localhost', port=27017)
-    db = client.test
+    db = client.yesterday
     #日期	井深	日进尺	生产时间	钻井效率
 
 
@@ -142,13 +141,13 @@ def searchProjectInfoWithDateAndDrillNum(startDate,endDate,drillNum):
                     '生产时间',
                     '钻井效率',
                     '钻具组合',
+                    '备注',
                     '6:00-10:00',
                     '10:00-14:00',
                     '14:00-18:00',
                     '18:00-22:00',
                     '22:00-2:00',
                     '2:00-6:00',
-                    'tips',
                     'allInfo']]
 
     for dateCollection in getEveryDay(startDate,endDate):
@@ -164,14 +163,14 @@ def searchProjectInfoWithDateAndDrillNum(startDate,endDate,drillNum):
                     'lastDayDeep',
                     'workingHour',
                     'workingAging',
-                    'drillingTools',
+                    'drillTools',
+                    'tips',
                     '6:00-10:00',
                     '10:00-14:00',
                     '14:00-18:00',
                     '18:00-22:00',
                     '22:00-2:00',
                     '2:00-6:00',
-                    'tips',
                     'allInfo']
         for r in results:
             print(r)
@@ -185,6 +184,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = window()  # 创建窗体对象
     MainWindow.show()  # 显示窗体
+
     sys.exit(app.exec_())  # 程序关闭时退出进程
 
 qmut_1 = QMutex() # 创建线程锁
