@@ -318,7 +318,6 @@ def checkoutDrillTools(drillToolsPattern,sourceStr):
                 drillToolsStr = 'φ' + drillToolsStr
             else:
                 print(drillToolsStr)
-
             return drillToolsStr
         else:
             return None
@@ -342,7 +341,7 @@ def scannerAllFolder(pathName):
 
 if __name__ == '__main__':
     #loadDataFromExcel('1')
-    pathName = 'C:\\Users\\18637\\Desktop\\生产日报\\2023'
+    pathName = 'C:\\Users\\18637\\Desktop\\生产日报\\2023\\05'
     # pathName = 'C:\\Users\\18637\\Desktop\\test'
     scannerAllFolder(pathName)
     if len(globalFilesPathList)>0:

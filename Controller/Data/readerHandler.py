@@ -27,9 +27,16 @@ class window(QtWidgets.QMainWindow,Ui_MainWindow):
     def searchButtonOnClicked(self):
         print(self.startDateEdit.text().split('/'))
         print(self.startDateEdit.text().split('/')[1]+'月'+self.startDateEdit.text().split('/')[2]+'日')
-        print(getEveryDay(self.startDateEdit.text(),self.endDateEdit.text()))
-        searchProjectInfoWithDateAndDrillNum(self.startDateEdit.text(),self.endDateEdit.text(),self.drillNumLineEdit.text())
-
+        begin_date = datetime.datetime.strptime(self.startDateEdit.text(), "%Y/%m/%d")
+        end_date = datetime.datetime.strptime(self.endDateEdit.text(), "%Y/%m/%d")
+        if begin_date <= end_date:
+            begin_date += datetime.timedelta(days=1)
+            end_date += datetime.timedelta(days=1)
+            begin_date_str = begin_date.strftime("%Y/%m/%d")
+            end_date_str = end_date.strftime("%Y/%m/%d")
+        else:
+            print('数据不合法！！！！')
+        searchProjectInfoWithDateAndDrillNum(begin_date_str,end_date_str,self.drillNumLineEdit.text())
 
     def setSearchButtonEnable(self):
         self.searchButton.setEnabled(True)
@@ -91,14 +98,14 @@ def get_max_col(max_list):
         line_list.append(max(line_num))  # 将每列最大宽度存入line_list
     return line_list
 
-def write_excel(data,drillNum,startDate,endDate):
+def write_excel(data,drillNum,startDateStr,endDateStr):
     row_num = 0  # 记录写入行数
     col_list = []  # 记录每行宽度
     # 个人信息：姓名，性别，年龄，手机号，固定电话，邮箱
     # 创建一个Workbook对象
     book = xlwt.Workbook(encoding="utf-8",style_compression=0)
     # 创建一个sheet对象
-    sheet = book.add_sheet('drillInfo', cell_overwrite_ok=True)
+    sheet = book.add_sheet(drillNum, cell_overwrite_ok=True)
     col_num = [0 for x in range(0, 14)]
     # 写入数据
     for i in range(0, len(data)):
@@ -113,23 +120,31 @@ def write_excel(data,drillNum,startDate,endDate):
     for i in range(0, len(col_max_num)):
         # 256*字符数得到excel列宽,为了不显得特别紧凑添加两个字符宽度
         sheet.col(i).width = 256 * (col_max_num[i] + 2)
+    startDate = datetime.datetime.strptime(startDateStr, "%Y/%m/%d")
+    endDate = datetime.datetime.strptime(endDateStr, "%Y/%m/%d")
+    startDate -= datetime.timedelta(days=1)
+    endDate -= datetime.timedelta(days=1)
+    begin_date_str = startDate.strftime("%Y-%m-%d")
+    end_date_str = endDate.strftime("%Y-%m-%d")
+
 
     # 保存excel文件
-    book.save('C:\\Users\\18637\\Desktop\\%s(%s至%s).xlsx'%(drillNum,startDate,endDate))
+    book.save('C:\\Users\\18637\\Desktop\\%s(%s至%s).xlsx'%(drillNum,begin_date_str,end_date_str))
 
 
-def getEveryDay(begin_date,end_date):
+def getEveryDay(startDateStr,endDateStr):
     date_list = []
-    begin_date = datetime.datetime.strptime(begin_date, "%Y/%m/%d")
-    end_date = datetime.datetime.strptime(end_date, "%Y/%m/%d")
+    begin_date = datetime.datetime.strptime(startDateStr, "%Y/%m/%d")
+    end_date = datetime.datetime.strptime(endDateStr, "%Y/%m/%d")
     while begin_date <= end_date:
-        date_str = begin_date.strftime("%Y/%m/%d")
-        date_list.append(date_str)
+        begin_date_str = begin_date.strftime("%Y/%m/%d")
+        date_list.append(begin_date_str)
         begin_date += datetime.timedelta(days=1)
+
     return date_list
 
-def searchProjectInfoWithDateAndDrillNum(startDate,endDate,drillNum):
-    getEveryDay(startDate,endDate)
+def searchProjectInfoWithDateAndDrillNum(startDateStr,endDateStr,drillNum):
+    getEveryDay(startDateStr,endDateStr)
     client = pymongo.MongoClient(host='localhost', port=27017)
     db = client.yesterday
     #日期	井深	日进尺	生产时间	钻井效率
@@ -150,7 +165,7 @@ def searchProjectInfoWithDateAndDrillNum(startDate,endDate,drillNum):
                     '2:00-6:00',
                     'allInfo']]
 
-    for dateCollection in getEveryDay(startDate,endDate):
+    for dateCollection in getEveryDay(startDateStr,endDateStr):
         singleRowList = []
 
         myCol = db[dateCollection]
@@ -177,7 +192,8 @@ def searchProjectInfoWithDateAndDrillNum(startDate,endDate,drillNum):
             for k in keysList:
                 singleRowList.append(r[k])
         MutiRowList.append(singleRowList)
-    write_excel(MutiRowList,drillNum,startDate.replace('/','-'),endDate.replace('/','-'))
+
+    write_excel(MutiRowList,drillNum,startDateStr,endDateStr)
 
 if __name__ == '__main__':
     #loadDataFromExcel('1')

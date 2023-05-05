@@ -22,8 +22,7 @@ def drawPicture(fileName: str):
     drillNum = dataSourceArray[7]
 
     # drillInfo = ['特凿井分公司4202钻机海石湾瓦斯井']
-
-    wks = op.new_sheet('w')
+    wks = op.new_sheet('w',lname = drillNum)
     deepTextList = []
     pureDrillingTimeTextList = []
     i = 0
@@ -31,12 +30,24 @@ def drawPicture(fileName: str):
         if str(drillUtils[i]) == 'nan':
             deepTextList.append((str)(deep[i]))
         else:
-            deepTextList.append('\c2(\p80(' + drillUtils[i] + '))\n' + (str)(deep[i]))
+            if '\n' in drillUtils[i]:
+                str1 = drillUtils[i][0:drillUtils[i].find('\n') - 1]
+                str2 = drillUtils[i][drillUtils[i].find('\n')+1:-1]+drillUtils[i][-1]
+                print(str1)
+                print(str2)
+                deepTextList.append('\c2(\p80(' + str1 + '))' + '\n\c2(\p80(' + str2 + '))\n' + (str)(deep[i]))
+            else:
+                deepTextList.append('\c2(\p80(' + drillUtils[i] + '))\n' + (str)(deep[i]))
 
         if str(tipsText[i]) == 'nan':
             pureDrillingTimeTextList.append((str)(pureDrillingTime[i]))
         else:
-            pureDrillingTimeTextList.append('\c2(\p80(' + tipsText[i] + '))\n' + (str)(pureDrillingTime[i]))
+            if '\n' in tipsText[i]:
+                str1 = tipsText[i][0:tipsText[i].find('\n')-1]
+                str2 = tipsText[i][tipsText[i].find('\n')+1:-1]
+                pureDrillingTimeTextList.append('\c2(\p80(' + str1 + '))'+'\c2(\p80(' + str2 + '))\n' + (str)(pureDrillingTime[i]))
+            else:
+                pureDrillingTimeTextList.append('\c2(\p80(' + tipsText[i] + '))\n' + (str)(pureDrillingTime[i]))
         i += 1
     wks.from_list(0, date, '日期')
     wks.from_list(1, deep, '井深', 'm')
@@ -51,7 +62,7 @@ def drawPicture(fileName: str):
     wks.from_list(10, getDrillBaseInfo(drillNum), '钻机信息', axis='L')
 
     # Add data plots onto the graph
-    gp = op.new_graph(template='drillAgingOTPU')  # load Vertical 2 Panel graph template
+    gp = op.new_graph(template='drillAgingOTPU',lname=drillNum)  # load Vertical 2 Panel graph template
 
     # Loop over layers and worksheets to add individual curve.
     for i, gl in enumerate(gp):
@@ -63,7 +74,8 @@ def drawPicture(fileName: str):
             # maxNumPlus1Str = maxNumPlus1Str[0:maxNumPlus1Str.find('.')]
             # gl.set_ylim(0, float(maxNumPlus1Str))
             # gl.set_ylim(step=int(maxNumPlus1Str) / 5)
-            gl.set_ylim(begin=min(deep) - 10,end=max(deep) + 10)
+            if max(deep) > 0:
+                gl.set_ylim(begin=min(deep) - 10,end=max(deep) + 10)
             # dp.set_cmd('-a 1 815 test')
 
             # dp.symbol_size=y4_text
@@ -73,22 +85,27 @@ def drawPicture(fileName: str):
             # dp.set_cmd('label -a 2 840 \p400(%s)'%'cvbcv')
             # op.attach()
         elif i == 1:
-            maxNumPlus1Str = str(max(perDeep) + 1)
-            maxNumPlus1Str = maxNumPlus1Str[0:maxNumPlus1Str.find('.')]
-            gl.set_ylim(0, float(maxNumPlus1Str))
+            if max(perDeep) > 0:
+                maxNumPlus1Str = str(max(perDeep) + 1)
+                if ('.' in maxNumPlus1Str) :
+                    maxNumPlus1Str = maxNumPlus1Str[0:maxNumPlus1Str.find('.')]
+                gl.set_ylim(0, float(maxNumPlus1Str))
             # gl.set_ylim(step=int(maxNumPlus1Str) / 5)
         elif i == 2:
             gl.set_ylim(0, 24)
             gl.set_ylim(step=4)
         elif i == 3:
-            maxNumPlus1Str = str(max(aging)+1)
-            maxNumPlus1Str = maxNumPlus1Str[0:maxNumPlus1Str.find('.')]
-            gl.set_ylim(0,float(maxNumPlus1Str))
+            if max(aging) > 0:
+                maxNumPlus1Str = str(max(aging)+1)
+                if ('.' in maxNumPlus1Str):
+                    maxNumPlus1Str = maxNumPlus1Str[0:maxNumPlus1Str.find('.')]
+                gl.set_ylim(0,float(maxNumPlus1Str))
             # gl.set_ylim(step=int(maxNumPlus1Str) / 5)
         else:
             print('Error')
         gl.set_xlim(0.5, 7.5)
         gl.set_xlim(step=1)
+        gl.rescale()
         # gl.set_xlim = (0.5,7.5,1)
         #
         # gl.ylim = (0, 200, 50)
