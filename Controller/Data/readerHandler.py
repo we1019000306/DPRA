@@ -21,8 +21,8 @@ class window(QtWidgets.QMainWindow,Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.searchButton.clicked.connect(self.searchButtonOnClicked)
-        self.startDateEdit.setDate(datetime.datetime.strptime('2023/04/14',"%Y/%m/%d"))
-        self.endDateEdit.setDate(datetime.datetime.strptime('2023/04/20',"%Y/%m/%d"))
+        self.startDateEdit.setDate(datetime.datetime.strptime('2023/04/28',"%Y/%m/%d"))
+        self.endDateEdit.setDate(datetime.datetime.strptime('2023/05/04',"%Y/%m/%d"))
 
     def searchButtonOnClicked(self):
         print(self.startDateEdit.text().split('/'))

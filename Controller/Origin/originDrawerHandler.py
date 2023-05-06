@@ -62,12 +62,17 @@ def drawPicture(fileName: str):
     wks.from_list(10, getDrillBaseInfo(drillNum), '钻机信息', axis='L')
 
     # Add data plots onto the graph
-    gp = op.new_graph(template='drillAgingOTPU',lname=drillNum)  # load Vertical 2 Panel graph template
+    if len(date) > 7:
+        gp = op.new_graph(template='drillAgingOTPU', lname=drillNum)  # load Vertical 2 Panel graph template
+    else:
+        gp = op.new_graph(template='drillAgingOTPU', lname=drillNum)  # load Vertical 2 Panel graph template
 
     # Loop over layers and worksheets to add individual curve.
     for i, gl in enumerate(gp):
         dp = gl.add_plot(wks, 1 + i, 0)
-
+        if (gl.label('titleText')) != None:
+            label = gl.label('titleText')
+            label.text = str(label.text).replace('Book1',drillNum)
         # print(i)
         if i == 0:
             # maxNumPlus1Str = str(max(deep) + 50)
@@ -105,7 +110,6 @@ def drawPicture(fileName: str):
             print('Error')
         gl.set_xlim(0.5, 7.5)
         gl.set_xlim(step=1)
-        gl.rescale()
         # gl.set_xlim = (0.5,7.5,1)
         #
         # gl.ylim = (0, 200, 50)
