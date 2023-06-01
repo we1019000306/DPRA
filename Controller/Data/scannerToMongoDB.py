@@ -63,6 +63,7 @@ def savedInMongoDB(dateStr):
                         '22:00-2:00',
                         '2:00-6:00',
                         'tips',
+                        'lastDayDeepText',
                         'allInfo']
             projectItem = []
             for infoList in globalAllInfoList[i]:
@@ -282,6 +283,7 @@ def loadDataFromExcel(fileNames: str):
                                    workingStateList_05.copy(),
                                    workingStateList_06.copy(),
                                    tipsList.copy(),
+                                   tipsList.copy(),
                                    allInfoList.copy()]
                         ndArray = np.array(ndList1, dtype='object')
 
@@ -318,6 +320,9 @@ def checkoutDrillTools(drillToolsPattern,sourceStr):
                 drillToolsStr = 'φ' + drillToolsStr
             else:
                 print(drillToolsStr)
+            onlyNumPattern = re.compile(r'φ[0-9]*')
+            drillToolsStr = onlyNumPattern.search(drillToolsStr).group()
+            drillToolsStr = drillToolsStr+'mm'
             return drillToolsStr
         else:
             return None
@@ -341,7 +346,7 @@ def scannerAllFolder(pathName):
 
 if __name__ == '__main__':
     #loadDataFromExcel('1')
-    pathName = 'C:\\Users\\18637\\Desktop\\生产日报\\2023\\05'
+    pathName = 'C:\\Users\\18637\\Desktop\\生产日报\\2023\\06'
     # pathName = 'C:\\Users\\18637\\Desktop\\test'
     scannerAllFolder(pathName)
     if len(globalFilesPathList)>0:

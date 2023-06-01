@@ -21,8 +21,8 @@ class window(QtWidgets.QMainWindow,Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.searchButton.clicked.connect(self.searchButtonOnClicked)
-        self.startDateEdit.setDate(datetime.datetime.strptime('2023/04/28',"%Y/%m/%d"))
-        self.endDateEdit.setDate(datetime.datetime.strptime('2023/05/04',"%Y/%m/%d"))
+        self.startDateEdit.setDate(datetime.datetime.strptime('2023/05/19',"%Y/%m/%d"))
+        self.endDateEdit.setDate(datetime.datetime.strptime('2023/05/25',"%Y/%m/%d"))
 
     def searchButtonOnClicked(self):
         print(self.startDateEdit.text().split('/'))
@@ -106,7 +106,7 @@ def write_excel(data,drillNum,startDateStr,endDateStr):
     book = xlwt.Workbook(encoding="utf-8",style_compression=0)
     # 创建一个sheet对象
     sheet = book.add_sheet(drillNum, cell_overwrite_ok=True)
-    col_num = [0 for x in range(0, 14)]
+    col_num = [0 for x in range(0, 15)]
     # 写入数据
     for i in range(0, len(data)):
         for j in range(0, len(data[i])):
@@ -119,7 +119,10 @@ def write_excel(data,drillNum,startDateStr,endDateStr):
     # 设置自适应列宽
     for i in range(0, len(col_max_num)):
         # 256*字符数得到excel列宽,为了不显得特别紧凑添加两个字符宽度
-        sheet.col(i).width = 256 * (col_max_num[i] + 2)
+        if 256 * (col_max_num[i] + 2) > 3000:
+            sheet.col(i).width = 3000
+        else:
+            sheet.col(i).width = 256 * (col_max_num[i] + 2)
     startDate = datetime.datetime.strptime(startDateStr, "%Y/%m/%d")
     endDate = datetime.datetime.strptime(endDateStr, "%Y/%m/%d")
     startDate -= datetime.timedelta(days=1)
@@ -155,8 +158,9 @@ def searchProjectInfoWithDateAndDrillNum(startDateStr,endDateStr,drillNum):
                     '日进尺',
                     '生产时间',
                     '钻井效率',
-                    '钻具组合',
-                    '备注',
+                    '井深标签',
+                    '日进尺标签',
+                    '生产时间标签',
                     '6:00-10:00',
                     '10:00-14:00',
                     '14:00-18:00',
@@ -179,6 +183,7 @@ def searchProjectInfoWithDateAndDrillNum(startDateStr,endDateStr,drillNum):
                     'workingHour',
                     'workingAging',
                     'drillTools',
+                    'lastDayDeepText',
                     'tips',
                     '6:00-10:00',
                     '10:00-14:00',
