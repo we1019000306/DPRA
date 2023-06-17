@@ -21,19 +21,19 @@ class window(QtWidgets.QMainWindow,Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.searchButton.clicked.connect(self.searchButtonOnClicked)
-        self.startDateEdit.setDate(datetime.datetime.strptime('2023/05/19',"%Y/%m/%d"))
-        self.endDateEdit.setDate(datetime.datetime.strptime('2023/05/25',"%Y/%m/%d"))
+        self.startDateEdit.setDate(datetime.datetime.strptime('2023-06-09',"%Y-%m-%d"))
+        self.endDateEdit.setDate(datetime.datetime.strptime('2023-06-15',"%Y-%m-%d"))
 
     def searchButtonOnClicked(self):
-        print(self.startDateEdit.text().split('/'))
-        print(self.startDateEdit.text().split('/')[1]+'月'+self.startDateEdit.text().split('/')[2]+'日')
-        begin_date = datetime.datetime.strptime(self.startDateEdit.text(), "%Y/%m/%d")
-        end_date = datetime.datetime.strptime(self.endDateEdit.text(), "%Y/%m/%d")
+        print(self.startDateEdit.text().split('-'))
+        print(self.startDateEdit.text().split('-')[1]+'月'+self.startDateEdit.text().split('-')[2]+'日')
+        begin_date = datetime.datetime.strptime(self.startDateEdit.text(), "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(self.endDateEdit.text(), "%Y-%m-%d")
         if begin_date <= end_date:
             begin_date += datetime.timedelta(days=1)
             end_date += datetime.timedelta(days=1)
-            begin_date_str = begin_date.strftime("%Y/%m/%d")
-            end_date_str = end_date.strftime("%Y/%m/%d")
+            begin_date_str = begin_date.strftime("%Y-%m-%d")
+            end_date_str = end_date.strftime("%Y-%m-%d")
         else:
             print('数据不合法！！！！')
         searchProjectInfoWithDateAndDrillNum(begin_date_str,end_date_str,self.drillNumLineEdit.text())
@@ -41,51 +41,51 @@ class window(QtWidgets.QMainWindow,Ui_MainWindow):
     def setSearchButtonEnable(self):
         self.searchButton.setEnabled(True)
 
-    def savedInMongoDB(self):
-        global globalAllInfoList
-        global globalCollectionName
-        client = pymongo.MongoClient(host='localhost', port=27017)
-        db = client.drillProject
-        if len(globalCollectionName) > 0:
-            collectionName = globalCollectionName[0]
-            collection = db[collectionName]
-            rowCount = self.dataTableWidget.rowCount()
-            # columnCount = self.dataTableWidget.columnCount()
-            i = 0
-            while i < rowCount:
-                # j = 0
-                # while j < columnCount:
-                #     # drillProjectItem = ['company':]
-                #     j = j + 1
-                keysList = ['projectDate',
-                            'company',
-                            'projectName',
-                            'drillId',
-                            'currentDeep',
-                            'lastDayDeep',
-                            'drillTools',
-                            '6:00-10:00',
-                            '10:00-14:00',
-                            '14:00-18:00',
-                            '18:00-22:00',
-                            '22:00-2:00',
-                            '22:00-2:00',
-                            'tips',
-                            'allInfo']
-                print(globalAllInfoList[i])
-                projectItem = []
-                for infoList in globalAllInfoList[i]:
-                    infoListStr = ''.join(infoList)
-                    projectItem.append(infoListStr)
-                    print(projectItem)
-                drillProjectItem = dict(zip(keysList, projectItem))
-                print(drillProjectItem)
-                result = collection.update_one({"drillId":drillProjectItem["drillId"]},{"$set":drillProjectItem},upsert=True)
-                print(result)
-                i = i + 1
-            QMessageBox.information(MainWindow, '提示：', '成功写入数据库！！！')
-        else:
-            QMessageBox.information(MainWindow, '警告！！！', '数据源选择有误，无法写入数据库！！！')
+    # def savedInMongoDB(self):
+    #     global globalAllInfoList
+    #     global globalCollectionName
+    #     client = pymongo.MongoClient(host='localhost', port=27017)
+    #     db = client.drillProject
+    #     if len(globalCollectionName) > 0:
+    #         collectionName = globalCollectionName[0]
+    #         collection = db[collectionName]
+    #         rowCount = self.dataTableWidget.rowCount()
+    #         # columnCount = self.dataTableWidget.columnCount()
+    #         i = 0
+    #         while i < rowCount:
+    #             # j = 0
+    #             # while j < columnCount:
+    #             #     # drillProjectItem = ['company':]
+    #             #     j = j + 1
+    #             keysList = ['projectDate',
+    #                         'company',
+    #                         'projectName',
+    #                         'drillId',
+    #                         'currentDeep',
+    #                         'lastDayDeep',
+    #                         'drillTools',
+    #                         '6:00-10:00',
+    #                         '10:00-14:00',
+    #                         '14:00-18:00',
+    #                         '18:00-22:00',
+    #                         '22:00-2:00',
+    #                         '22:00-2:00',
+    #                         'tips',
+    #                         'allInfo']
+    #             print(globalAllInfoList[i])
+    #             projectItem = []
+    #             for infoList in globalAllInfoList[i]:
+    #                 infoListStr = ''.join(infoList)
+    #                 projectItem.append(infoListStr)
+    #                 print(projectItem)
+    #             drillProjectItem = dict(zip(keysList, projectItem))
+    #             print(drillProjectItem)
+    #             result = collection.update_one({"drillId":drillProjectItem["drillId"]},{"$set":drillProjectItem},upsert=True)
+    #             print(result)
+    #             i = i + 1
+    #         QMessageBox.information(MainWindow, '提示：', '成功写入数据库！！！')
+    #     else:
+    #         QMessageBox.information(MainWindow, '警告！！！', '数据源选择有误，无法写入数据库！！！')
 
 # 获取每列所占用的最大列宽
 def get_max_col(max_list):
@@ -123,8 +123,8 @@ def write_excel(data,drillNum,startDateStr,endDateStr):
             sheet.col(i).width = 3000
         else:
             sheet.col(i).width = 256 * (col_max_num[i] + 2)
-    startDate = datetime.datetime.strptime(startDateStr, "%Y/%m/%d")
-    endDate = datetime.datetime.strptime(endDateStr, "%Y/%m/%d")
+    startDate = datetime.datetime.strptime(startDateStr, "%Y-%m-%d")
+    endDate = datetime.datetime.strptime(endDateStr, "%Y-%m-%d")
     startDate -= datetime.timedelta(days=1)
     endDate -= datetime.timedelta(days=1)
     begin_date_str = startDate.strftime("%Y-%m-%d")
@@ -137,19 +137,19 @@ def write_excel(data,drillNum,startDateStr,endDateStr):
 
 def getEveryDay(startDateStr,endDateStr):
     date_list = []
-    begin_date = datetime.datetime.strptime(startDateStr, "%Y/%m/%d")
-    end_date = datetime.datetime.strptime(endDateStr, "%Y/%m/%d")
+    begin_date = datetime.datetime.strptime(startDateStr, "%Y-%m-%d")
+    end_date = datetime.datetime.strptime(endDateStr, "%Y-%m-%d")
     while begin_date <= end_date:
-        begin_date_str = begin_date.strftime("%Y/%m/%d")
+        begin_date_str = begin_date.strftime("%Y-%m-%d")
         date_list.append(begin_date_str)
         begin_date += datetime.timedelta(days=1)
 
     return date_list
 
 def searchProjectInfoWithDateAndDrillNum(startDateStr,endDateStr,drillNum):
-    getEveryDay(startDateStr,endDateStr)
+    # getEveryDay(startDateStr,endDateStr)
     client = pymongo.MongoClient(host='localhost', port=27017)
-    db = client.yesterday
+    db = client.drillProjectItems
     #日期	井深	日进尺	生产时间	钻井效率
 
 

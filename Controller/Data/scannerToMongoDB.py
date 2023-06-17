@@ -22,9 +22,9 @@ def saveDataToMongoDB():
             #print(i)
             patternName = re.compile(r'[0-9]+月+[0-9]+日')
             if patternName.search(i):
-                print("2023/"+patternName.search(i).group().replace('日','').replace('月','/'))
-                date1 = datetime.datetime.strptime("2023/"+patternName.search(i).group().replace('日','').replace('月','/'), "%Y/%m/%d")
-                dateStr = date1.strftime("%Y/%m/%d")
+                print("2023-"+patternName.search(i).group().replace('日','').replace('月','-'))
+                date1 = datetime.datetime.strptime("2023-"+patternName.search(i).group().replace('日','').replace('月','-'), "%Y-%m-%d")
+                dateStr = date1.strftime("%Y-%m-%d")
                 globalCollectionName.append(dateStr)
                 loadDataFromExcel(i)
                 savedInMongoDB(dateStr)
@@ -39,7 +39,7 @@ def savedInMongoDB(dateStr):
     global globalAllInfoList
     global globalCollectionName
     client = pymongo.MongoClient(host='localhost', port=27017)
-    db = client.yesterday
+    db = client.drillProjectItems
     if len(globalCollectionName) > 0:
         collectionName = globalCollectionName[0]
         collection = db[dateStr]
@@ -346,7 +346,7 @@ def scannerAllFolder(pathName):
 
 if __name__ == '__main__':
     #loadDataFromExcel('1')
-    pathName = 'C:\\Users\\18637\\Desktop\\生产日报\\2023\\06'
+    pathName = 'C:\\Users\\18637\\Desktop\\生产日报\\2023'
     # pathName = 'C:\\Users\\18637\\Desktop\\test'
     scannerAllFolder(pathName)
     if len(globalFilesPathList)>0:
